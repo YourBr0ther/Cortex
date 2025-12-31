@@ -65,7 +65,92 @@ const elements = {
     processingText: document.getElementById('processing-text'),
     toastContainer: document.getElementById('toast-container'),
     neuralBg: document.getElementById('neural-bg'),
+    installPrompt: document.getElementById('install-prompt'),
+    installBtn: document.getElementById('install-btn'),
+    installClose: document.getElementById('install-close'),
 };
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PWA INSTALL PROMPT
+// ═══════════════════════════════════════════════════════════════════════════
+
+let deferredPrompt = null;
+
+function initInstallPrompt() {
+    // Check if already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+        return; // Already installed as PWA
+    }
+
+    // Check if user dismissed before
+    const dismissed = localStorage.getItem('cortex_install_dismissed');
+    if (dismissed) {
+        const dismissedTime = parseInt(dismissed, 10);
+        const daysSinceDismissed = (Date.now() - dismissedTime) / (1000 * 60 * 60 * 24);
+        if (daysSinceDismissed < 7) {
+            return; // Don't show again for 7 days
+        }
+    }
+
+    // Listen for the beforeinstallprompt event (Chrome, Edge, Samsung Internet)
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        showInstallPrompt();
+    });
+
+    // For iOS - show custom instructions
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isInStandaloneMode = window.navigator.standalone === true;
+
+    if (isIOS && !isInStandaloneMode) {
+        // Show iOS-specific install prompt after a delay
+        setTimeout(() => {
+            showInstallPrompt(true);
+        }, 2000);
+    }
+
+    // Install button click
+    elements.installBtn.addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                hideInstallPrompt();
+            }
+            deferredPrompt = null;
+        } else {
+            // iOS - show instructions
+            showToast('Tap Share → Add to Home Screen', 'success');
+            hideInstallPrompt();
+        }
+    });
+
+    // Close button click
+    elements.installClose.addEventListener('click', () => {
+        hideInstallPrompt();
+        localStorage.setItem('cortex_install_dismissed', Date.now().toString());
+    });
+
+    // Hide if app gets installed
+    window.addEventListener('appinstalled', () => {
+        hideInstallPrompt();
+        deferredPrompt = null;
+    });
+}
+
+function showInstallPrompt(isIOS = false) {
+    if (isIOS) {
+        // Update text for iOS
+        const textEl = elements.installPrompt.querySelector('.install-prompt-text span');
+        textEl.textContent = 'Tap Share → Add to Home Screen';
+    }
+    elements.installPrompt.classList.add('show');
+}
+
+function hideInstallPrompt() {
+    elements.installPrompt.classList.remove('show');
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SAFE DOM HELPERS
@@ -770,6 +855,9 @@ async function init() {
 
     // Initialize event listeners
     initEventListeners();
+
+    // Initialize install prompt
+    initInstallPrompt();
 
     // Register service worker
     await registerServiceWorker();

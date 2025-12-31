@@ -136,6 +136,27 @@
 
         <!-- Toast notifications -->
         <div class="toast-container" id="toast-container"></div>
+
+        <!-- Install prompt -->
+        <div class="install-prompt" id="install-prompt">
+            <div class="install-prompt-content">
+                <div class="install-prompt-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M12 5v14M5 12l7 7 7-7"/>
+                    </svg>
+                </div>
+                <div class="install-prompt-text">
+                    <strong>Install Cortex</strong>
+                    <span>Add to your home screen for quick access</span>
+                </div>
+                <button class="install-prompt-btn" id="install-btn">Install</button>
+                <button class="install-prompt-close" id="install-close" aria-label="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
     </div>
 
     <script src="app.js"></script>
