@@ -62,6 +62,24 @@
     padding: 0;
 }
 
+/* Prevent text selection on UI elements */
+.app {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Allow selection only on actual content */
+.entry-preview,
+.entry-content,
+.toast-message {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+
 html {
     font-size: 16px;
     -webkit-font-smoothing: antialiased;

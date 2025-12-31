@@ -10,6 +10,7 @@ import asyncio
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+from zoneinfo import ZoneInfo
 
 import httpx
 import whisper
@@ -27,9 +28,19 @@ class Settings(BaseSettings):
     nano_gpt_api_url: str = "https://nano-gpt.com/api/v1/chat/completions"
     data_dir: str = "/data"
     whisper_model: str = "base"  # tiny, base, small, medium, large
+    timezone: str = "America/New_York"  # Default to EST
 
     class Config:
         env_file = ".env"
+
+
+def get_local_time(timestamp: str = None) -> datetime:
+    """Convert timestamp to local timezone"""
+    tz = ZoneInfo(settings.timezone)
+    if timestamp:
+        dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+        return dt.astimezone(tz)
+    return datetime.now(tz)
 
 
 settings = Settings()
@@ -345,8 +356,8 @@ def create_note_content(
     summary: str
 ) -> str:
     """Create markdown note content"""
-    dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
-    formatted_date = dt.strftime("%B %d, %Y at %I:%M %p")
+    dt = get_local_time(timestamp)
+    formatted_date = dt.strftime("%B %d, %Y at %I:%M %p %Z")
 
     return f"""# {title}
 

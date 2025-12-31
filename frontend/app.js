@@ -406,7 +406,11 @@ function startWaveformVisualization() {
     const ctx = canvas.getContext('2d');
     const bufferLength = state.analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
-    const barWidth = canvas.width / CONFIG.WAVEFORM_BAR_COUNT;
+    const barCount = CONFIG.WAVEFORM_BAR_COUNT;
+    const totalWidth = canvas.width;
+    const barWidth = totalWidth / barCount;
+    const centerY = canvas.height / 2;
+    const minBarHeight = 4; // Minimum visible bar
 
     function draw() {
         if (!state.isRecording) return;
@@ -420,17 +424,18 @@ function startWaveformVisualization() {
         gradient.addColorStop(0, '#00d4aa');
         gradient.addColorStop(0.5, '#00b4d8');
         gradient.addColorStop(1, '#00d4aa');
+        ctx.fillStyle = gradient;
 
-        for (let i = 0; i < CONFIG.WAVEFORM_BAR_COUNT; i++) {
-            const dataIndex = Math.floor(i * bufferLength / CONFIG.WAVEFORM_BAR_COUNT);
+        for (let i = 0; i < barCount; i++) {
+            const dataIndex = Math.floor(i * bufferLength / barCount);
             const value = dataArray[dataIndex];
-            const barHeight = (value / 255) * canvas.height * 0.8;
-            const x = i * barWidth + barWidth * 0.1;
-            const y = (canvas.height - barHeight) / 2;
+            // Calculate bar height with minimum, grows from center
+            const barHeight = Math.max(minBarHeight, (value / 255) * canvas.height * 0.85);
+            const x = i * barWidth + barWidth * 0.15;
+            const y = centerY - barHeight / 2;
 
-            ctx.fillStyle = gradient;
             ctx.beginPath();
-            ctx.roundRect(x, y, barWidth * 0.8, barHeight, 2);
+            ctx.roundRect(x, y, barWidth * 0.7, barHeight, 2);
             ctx.fill();
         }
     }

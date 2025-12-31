@@ -20,6 +20,8 @@ services:
       # Smaller = faster but less accurate, larger = slower but more accurate
       - WHISPER_MODEL=${WHISPER_MODEL:-base}
       - DATA_DIR=/data
+      # Timezone for timestamps (e.g., America/New_York, America/Los_Angeles)
+      - TIMEZONE=${TIMEZONE:-America/New_York}
     # GPU support (uncomment if you have NVIDIA GPU)
     # deploy:
     #   resources:
