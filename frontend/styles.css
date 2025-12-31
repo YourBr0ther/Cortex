@@ -62,17 +62,16 @@
     padding: 0;
 }
 
-/* Prevent text selection on UI elements */
+/* Prevent text selection and touch callouts on UI elements */
 .app {
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    -webkit-touch-callout: none;
 }
 
-/* Allow selection only on actual content */
-.entry-preview,
-.entry-content,
+/* Allow selection only on toast messages */
 .toast-message {
     -webkit-user-select: text;
     -moz-user-select: text;
