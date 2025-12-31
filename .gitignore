@@ -1,0 +1,43 @@
+# Environment
+.env
+*.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+.venv/
+
+# Data (user's notes - don't commit)
+data/
+!data/.gitkeep
+
+# Whisper models (large files)
+*.pt
+*.bin
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.log
+
+# Node (if any)
+node_modules/
+
+# Temp files
+*.tmp
+*.temp
+/tmp/

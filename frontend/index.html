@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0f14">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Cortex</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Neural background -->
+        <canvas id="neural-bg"></canvas>
+
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-mark">
+                    <svg viewBox="0 0 32 32" fill="none">
+                        <circle cx="16" cy="16" r="6" stroke="currentColor" stroke-width="1.5"/>
+                        <circle cx="16" cy="16" r="12" stroke="currentColor" stroke-width="0.75" opacity="0.5"/>
+                        <circle cx="16" cy="4" r="2" fill="currentColor" opacity="0.7"/>
+                        <circle cx="16" cy="28" r="2" fill="currentColor" opacity="0.7"/>
+                        <circle cx="4" cy="16" r="2" fill="currentColor" opacity="0.7"/>
+                        <circle cx="28" cy="16" r="2" fill="currentColor" opacity="0.7"/>
+                        <line x1="16" y1="10" x2="16" y2="6" stroke="currentColor" stroke-width="0.75"/>
+                        <line x1="16" y1="26" x2="16" y2="22" stroke="currentColor" stroke-width="0.75"/>
+                        <line x1="10" y1="16" x2="6" y2="16" stroke="currentColor" stroke-width="0.75"/>
+                        <line x1="26" y1="16" x2="22" y2="16" stroke="currentColor" stroke-width="0.75"/>
+                    </svg>
+                </div>
+                <span class="logo-text">Cortex</span>
+            </div>
+            <button class="btn-icon" id="btn-folders" aria-label="Browse folders">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                </svg>
+            </button>
+        </header>
+
+        <!-- Main recording area -->
+        <main class="main">
+            <!-- Status indicator -->
+            <div class="status" id="status">
+                <div class="status-dot"></div>
+                <span class="status-text">Ready to capture</span>
+            </div>
+
+            <!-- Recording visualization -->
+            <div class="record-container">
+                <div class="record-rings" id="record-rings">
+                    <div class="ring ring-1"></div>
+                    <div class="ring ring-2"></div>
+                    <div class="ring ring-3"></div>
+                </div>
+                <button class="record-btn" id="record-btn" aria-label="Record">
+                    <div class="record-btn-inner">
+                        <div class="record-icon" id="record-icon">
+                            <svg class="mic-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                            </svg>
+                            <div class="stop-icon"></div>
+                        </div>
+                    </div>
+                    <div class="record-btn-glow"></div>
+                </button>
+                <div class="timer" id="timer">00:00</div>
+            </div>
+
+            <!-- Waveform visualization -->
+            <div class="waveform-container" id="waveform-container">
+                <canvas id="waveform" width="300" height="60"></canvas>
+            </div>
+
+            <!-- Current folder indicator -->
+            <div class="current-folder" id="current-folder">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                </svg>
+                <span>inbox</span>
+                <button class="folder-change" id="btn-change-folder">Change</button>
+            </div>
+        </main>
+
+        <!-- Recent entries -->
+        <section class="entries" id="entries-section">
+            <div class="entries-header">
+                <h2>Recent Thoughts</h2>
+                <button class="btn-text" id="btn-view-all">View all</button>
+            </div>
+            <div class="entries-list" id="entries-list">
+                <!-- Entries will be populated here -->
+            </div>
+        </section>
+
+        <!-- Folder panel (slide-in) -->
+        <div class="folder-panel" id="folder-panel">
+            <div class="folder-panel-header">
+                <h2>Folders</h2>
+                <button class="btn-icon" id="btn-close-folders" aria-label="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="folder-list" id="folder-list">
+                <!-- Folders will be populated here -->
+            </div>
+            <button class="btn-add-folder" id="btn-add-folder">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M12 5v14M5 12h14"/>
+                </svg>
+                <span>New Folder</span>
+            </button>
+        </div>
+        <div class="folder-panel-overlay" id="folder-panel-overlay"></div>
+
+        <!-- Processing overlay -->
+        <div class="processing-overlay" id="processing-overlay">
+            <div class="processing-content">
+                <div class="processing-spinner">
+                    <div class="spinner-ring"></div>
+                    <div class="spinner-core"></div>
+                </div>
+                <p class="processing-text" id="processing-text">Transcribing...</p>
+            </div>
+        </div>
+
+        <!-- Toast notifications -->
+        <div class="toast-container" id="toast-container"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

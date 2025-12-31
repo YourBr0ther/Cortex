@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  cortex:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cortex
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount the data directory for persistent storage
+      - ./data:/data
+      # Mount frontend for development (optional, remove in production)
+      - ./frontend:/app/../frontend:ro
+    environment:
+      # API key for nano-gpt.com - set this in .env file
+      - NANO_GPT_API_KEY=${NANO_GPT_API_KEY}
+      - NANO_GPT_API_URL=https://nano-gpt.com/api/v1/chat/completions
+      # Whisper model size: tiny, base, small, medium, large
+      # Smaller = faster but less accurate, larger = slower but more accurate
+      - WHISPER_MODEL=${WHISPER_MODEL:-base}
+      - DATA_DIR=/data
+    # GPU support (uncomment if you have NVIDIA GPU)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/folders"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s  # Whisper model takes time to load
+
+  # Optional: Nginx reverse proxy with SSL
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: cortex-nginx
+  #   restart: unless-stopped
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./certs:/etc/nginx/certs:ro
+  #   depends_on:
+  #     - cortex
+
+networks:
+  default:
+    name: cortex-network
