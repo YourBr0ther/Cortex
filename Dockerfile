@@ -1,7 +1,7 @@
-# CORTEX Backend Dockerfile
+# CORTEX Voice Recorder - Production Dockerfile
 FROM python:3.11-slim
 
-# Install system dependencies for Whisper/PyTorch and audio processing
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     libsndfile1 \
@@ -12,14 +12,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Set working directory
 WORKDIR /app
 
-# Copy requirements first for layer caching
-COPY requirements.txt .
-
-# Install Python dependencies
+# Copy and install Python dependencies first (better layer caching)
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY . .
+# Copy backend code
+COPY backend/ .
+
+# Copy frontend to expected location (main.py looks for ../frontend relative to itself)
+COPY frontend/ /frontend/
 
 # Create data directory
 RUN mkdir -p /data
