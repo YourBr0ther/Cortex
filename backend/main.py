@@ -4,6 +4,7 @@ Voice transcription and AI-powered note organization
 """
 
 import os
+import re
 import uuid
 import json
 import asyncio
@@ -32,6 +33,45 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SECURITY HELPERS
+# ═══════════════════════════════════════════════════════════════════════════
+
+def sanitize_folder_name(name: str) -> str:
+    """Sanitize folder name to prevent path traversal attacks.
+
+    Removes path separators, parent directory references, and other
+    potentially dangerous characters.
+    """
+    # Convert to lowercase and replace spaces with hyphens
+    sanitized = name.lower().replace(" ", "-")
+    # Remove path separators and parent directory references
+    sanitized = sanitized.replace("/", "").replace("\\", "").replace("..", "")
+    # Remove any remaining dots at the start (hidden files)
+    sanitized = sanitized.lstrip(".")
+    # Keep only alphanumeric, hyphens, and underscores
+    sanitized = re.sub(r'[^a-z0-9_-]', '', sanitized)
+    # Ensure we have a valid name
+    if not sanitized:
+        raise HTTPException(status_code=400, detail="Invalid folder name")
+    return sanitized[:50]  # Limit length
+
+
+def sanitize_slug(slug: str) -> str:
+    """Sanitize slug for safe filesystem use.
+
+    Ensures the slug only contains safe characters for filenames.
+    """
+    # Keep only lowercase alphanumeric and hyphens
+    sanitized = re.sub(r'[^a-z0-9-]', '', slug.lower())
+    # Remove leading/trailing hyphens
+    sanitized = sanitized.strip('-')
+    # Collapse multiple hyphens
+    sanitized = re.sub(r'-+', '-', sanitized)
+    # Return a default if empty, limit length
+    return sanitized[:30] if sanitized else "note"
 
 
 def get_local_time(timestamp: str = None) -> datetime:
@@ -220,12 +260,14 @@ async def process_transcript(request: ProcessRequest):
     # Generate unique ID
     entry_id = str(uuid.uuid4())[:8]
 
-    # Create filename
+    # Create filename with sanitized slug
     dt = datetime.fromisoformat(request.timestamp.replace("Z", "+00:00"))
-    filename = f"{dt.strftime('%Y-%m-%d_%H-%M-%S')}_{parsed['slug']}.md"
+    safe_slug = sanitize_slug(parsed['slug'])
+    filename = f"{dt.strftime('%Y-%m-%d_%H-%M-%S')}_{safe_slug}.md"
 
-    # Save the note
-    folder_path = Path(settings.data_dir) / parsed["folder"]
+    # Save the note with sanitized folder name
+    safe_folder = sanitize_folder_name(parsed["folder"])
+    folder_path = Path(settings.data_dir) / safe_folder
     folder_path.mkdir(exist_ok=True)
     file_path = folder_path / filename
 
@@ -233,7 +275,7 @@ async def process_transcript(request: ProcessRequest):
         transcript=request.transcript,
         timestamp=request.timestamp,
         title=parsed["title"],
-        folder=parsed["folder"],
+        folder=safe_folder,
         summary=parsed.get("summary", "")
     )
 
@@ -243,7 +285,7 @@ async def process_transcript(request: ProcessRequest):
     return ProcessResponse(
         id=entry_id,
         preview=parsed.get("summary", request.transcript[:100]),
-        folder=parsed["folder"],
+        folder=safe_folder,
         file_path=str(file_path),
         title=parsed["title"]
     )
@@ -397,7 +439,8 @@ async def list_folders():
 @app.post("/api/folders", response_model=FolderInfo)
 async def create_folder(request: CreateFolderRequest):
     """Create a new folder"""
-    folder_name = request.name.lower().replace(" ", "-")
+    # Sanitize folder name to prevent path traversal
+    folder_name = sanitize_folder_name(request.name)
     folder_path = Path(settings.data_dir) / folder_name
 
     if folder_path.exists():
@@ -420,7 +463,9 @@ async def list_entries(folder: Optional[str] = None, limit: int = 10):
 
     # Get all markdown files
     if folder:
-        folder_path = data_path / folder
+        # Sanitize folder name from query parameter
+        safe_folder = sanitize_folder_name(folder)
+        folder_path = data_path / safe_folder
         if folder_path.exists():
             files = list(folder_path.glob("*.md"))
         else:
