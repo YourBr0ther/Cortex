@@ -240,8 +240,11 @@ async def transcribe_audio(
         )
     finally:
         # Clean up temp file
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
+        try:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+        except Exception as e:
+            print(f"Warning: Could not remove temp file {temp_path}: {e}")
 
 
 @app.post("/api/process", response_model=ProcessResponse)
