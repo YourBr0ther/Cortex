@@ -14,7 +14,7 @@ A voice-powered brain dump and memory extension app. Record your thoughts on you
 
 1. **Clone and configure**
    ```bash
-   git clone git@github.com:YourBr0ther/cortex.git
+   git clone git@github.com:YourBr0ther/Cortex.git
    cd cortex
    cp .env.example .env
    # Edit .env and add your NANO_GPT_API_KEY
