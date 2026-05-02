@@ -241,8 +241,9 @@ async def transcribe_audio(
     finally:
         # Clean up temp file
         try:
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
+            os.remove(temp_path)
+        except FileNotFoundError:
+            pass  # File already deleted or never created
         except Exception as e:
             print(f"Warning: Could not remove temp file {temp_path}: {e}")
 
